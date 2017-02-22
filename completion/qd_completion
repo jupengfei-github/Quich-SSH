@@ -1,34 +1,68 @@
 HOME_ROOT=/opt/jupengfei/tool/.
 . $HOME_ROOT/lib/libqd.sh
 
-function gen_qd_commands {  
+top_dir () {
+    local cur=$1
+
+    if [ "${cur/\//}" != "$cur" ]; then
+        cur_dir=${cur%/*}
+    fi
+
+    echo $cur_dir
+}
+
+gen_qd_commands () {
     local cur prev
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
     [ ${#COMP_WORDS} -gt 2 ] && return
 
-    local top=`pwd`
+    local top
+    if [ "${cur/\//}" != "$cur" ]; then
+       top=${cur%/*}/
+       cur=${cur##*/}
+    fi
+
     local items tmp_items=`get_cache_list`
-
     for tmp_item in $tmp_items; do
-        items="$items ${tmp_item#$top/}"
+        tmp_item=$tmp_item/
+        tmp_item=${tmp_item#`pwd`/}
+        [ -n "$tmp_item" ] && items="$items ${tmp_item%/}/"
     done
-    items="$items `ls`"
 
-    local delims=`echo $cur|tr ':' '\n'`
+    local dirs tmp_dirs=`ls $top`
+    for dir in $tmp_dirs; do
+        [ -d "$top$dir" ] && dirs="$dirs $dir/"
+    done
 
+    items="$items $dirs"
+    local delims=`echo $cur|tr '.' '\n'`
+
+    local result=()
     for item in $items; do
         local tmp need=true
 
         for delim in $delims; do
             tmp=${item//$delim/}
 
-            [ $tmp = $item ] && need=false
+            [ "$tmp" = "$item" ] && need=false
         done
 
-        [ $need = true ] && COMPREPLY=(${COMPREPLY[@]} $item);
+        [ $need = true ] && result=(${result[@]} $item)
     done
+
+    if [ ${#result[@]} -eq 1 ]; then
+        result[0]=$top${result[0]}
+        complete_dir=${result[0]}
+
+        if [ -d $complete_dir ]; then
+            for file in `ls $complete_dir`; do
+                [ -d "$complete_dir/$file" ] && result=(${result[@]} $complete_dir$file)
+            done
+        fi
+    fi
+    COMPREPLY=(${result[@]})
 }
 
 complete -F gen_qd_commands qd

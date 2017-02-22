@@ -25,6 +25,7 @@ save_cache () {
     local db_seq db_dir="$1"
     declare -i db_seq=1
 
+    db_dir=${db_dir%%/}
     local item=`grep -w "^[[:digit:]]:$db_dir$" $QD_DB_FILE`
     if [ -n "$item" ]; then
         db_seq=${item%%:*}
@@ -78,8 +79,10 @@ qd () {
 
     shift $[ $OPTIND - 1 ]
 
-    if [ $# -eq 1 -a -d $1 ]; then
+    if [ $# -eq 1 ] && [ -d $1 ]; then
         dir=`parse_item $1`
         cd $dir
+    else
+        cd $*
     fi
 }
