@@ -1,0 +1,83 @@
+HOME_ROOT=/opt/jupengfei/tool/.
+. $HOME_ROOT/lib/libqd.sh
+
+usage () {
+cat <<EOF
+Usage : qd <dir_name>
+
+   -c : clear all directory cache
+EOF
+}
+
+clear_cache () {
+	echo > $QD_DB_FILE
+}
+
+list_cache () {
+	local msgs=`cut -d':' -f2 $QD_DB_FILE`
+
+	for msg in $msgs; do
+	    log_message $msg
+	done
+}
+
+save_cache () {
+    local db_seq db_dir="$1"
+    declare -i db_seq=1
+
+    local item=`grep -w "^[[:digit:]]:$db_dir$" $QD_DB_FILE`
+    if [ -n "$item" ]; then
+        db_seq=${item%%:*}
+        db_seq=$[ $db_seq + 1 ]
+        db_dir=${db_dir//\//\\\/}
+        sed -i "/^[[:digit:]]:$db_dir$/c$db_seq:$db_dir" $QD_DB_FILE
+    else
+        echo $db_seq:$db_dir >> $QD_DB_FILE
+    fi
+
+    local tmp_file=`mktemp -t`
+    sort -n -k1 -t: $QD_DB_FILE|head -n $QD_DB_TOP > $tmp_file
+    cat $tmp_file > $QD_DB_FILE
+}
+
+parse_item () {
+    local dir=$1
+    if [ ${dir:0:1} != "/" ]; then
+        dir=`pwd`/$dir
+    fi
+
+    local item=`grep "^[[:digit:]]:$d$" $QD_DB_FILE 2>/dev/null`
+    [ -n "$item" ] && dir=${item##*:}
+    save_cache $dir
+
+    echo ${dir##`pwd`/}
+}
+
+qd () {
+    if [ ! -w "$QD_DB_FILE" -o ! -r "$QD_DB_FILE" ]; then
+        log_message "Cant't read file $QD_DB_FILE"
+        return
+    fi
+
+    unset OPTIND
+    while getopts "clad" opt; do
+	    case $opt in 
+	        c) 
+		        clear_cache
+		        return;;
+	        l) 
+		        list_cache
+		        return;;
+	        \?|*)
+		        usage
+		        return;;
+        esac
+    done
+
+    shift $[ $OPTIND - 1 ]
+
+    if [ $# -eq 1 -a -d $1 ]; then
+        dir=`parse_item $1`
+        cd $dir
+    fi
+}

@@ -1,0 +1,184 @@
+#!/bin/bash
+
+# import libs
+HOME_ROOT=/opt/jupengfei/tool/.
+. $HOME_ROOT/lib/libqsh.sh
+
+function usage {
+cat <<EOF
+Usage : qsh <command> <parameter>
+
+  list    : list all stored sessions
+  create  : create new session
+  delete  : delete new session
+  edit    : modify exits session
+  help    : show help message
+  connect : connect to remote server
+EOF
+}
+
+function get_session_segment {
+    local ssn_id=0
+
+    case "$1" in 
+       $SSN_NAME) ssn_id=1;;
+       $SSN_ADDR) ssn_id=2;;
+       $SSN_TYPE) ssn_id=3;;
+       $SSN_USER) ssn_id=4;;
+       $SSN_PAWD) ssn_id=5;;
+       *)         ssn_id=-1;;
+    esac
+
+    SSN_SEG_INFO=
+    [ ! -r "$QSH_SESSION_FILE" -o "$ssn_id" -le 0 -o -z "$SSN_SEG_NAME" ] && return 1
+    SSN_SEG_INFO=`grep $SSN_SEG_NAME $QSH_SESSION_FILE|cut -d':' -f $ssn_id`
+}
+
+function get_session_info {
+    SSN_SEGS_INFO=()
+    [ -z "$SSN_SEG_NAME" -o ! -r "$QSH_SESSION_FILE" ] && return 1
+
+    get_session_segment $SSN_NAME; SSN_SEGS_INFO[0]=$SSN_SEG_INFO
+    get_session_segment $SSN_ADDR; SSN_SEGS_INFO[1]=$SSN_SEG_INFO
+    get_session_segment $SSN_TYPE; SSN_SEGS_INFO[2]=$SSN_SEG_INFO
+    get_session_segment $SSN_USER; SSN_SEGS_INFO[3]=$SSN_SEG_INFO
+    get_session_segment $SSN_PAWD; SSN_SEGS_INFO[4]=$SSN_SEG_INFO
+}
+
+function get_session_names {
+    QSH_SSN_NAMES=()
+    [ ! -r "$QSH_SESSION_FILE" ] && return 1
+
+    local names=`cut -d':' -f1 $QSH_SESSION_FILE`
+    for name in $names; do
+        QSH_SSN_NAMES=(${QSH_SSN_NAMES[*]} $name)
+    done
+}
+
+function list_sessions_info {
+    local session_found=false
+
+    [ ! -r "$QSH_SESSION_FILE" ] && return 1
+    get_session_names
+    local sessions=${QSH_SSN_NAMES[@]}
+
+    for session in $sessions; do
+	    if [ "$session_found" = false ]; then
+	        qprint "$SSN_NAME | $SSN_ADDR | $SSN_TYPE | $SSN_USER"
+	        session_found=true
+	    fi
+
+	    SSN_SEG_NAME="$session"
+	    get_session_info
+	    qprint "${SSN_SEGS_INFO[0]} | ${SSN_SEGS_INFO[1]} | ${SSN_SEGS_INFO[2]} | ${SSN_SEGS_INFO[3]}"
+    done
+}
+
+function read_session_info {
+    local var count
+
+    count=0
+    until read -t "$GET_SESSION_TIME_OUT" -p "$GET_SESSION_INFO_HINT : " var || [ $count -le 3 ]; do
+	    count=$[ $count + 1 ]
+    done
+
+    echo $var
+}
+
+function create_new_session {
+    local session_segs="$SSN_NAME $SSN_ADDR $SSN_TYPE $SSN_USER $SSN_PAWD"
+    local sessino_info index
+    local tmp_file session
+
+    index=0
+    [ ! -r "$QSH_SESSION_FILE" ] && return 1
+
+    for session_seg in $session_segs; do
+        GET_SESSION_INFO_HINT=$session_seg
+        session_info=`read_session_info`
+
+	    [ "$index" -gt 0 ] && session_info=:$session_info
+        session=${session}${session_info}
+
+	    index=$[ $index + 1 ]
+    done
+
+    echo $session >> $QSH_SESSION_FILE
+}
+
+function delete_session {
+    local session_name="$1"
+
+    [ ! -r "$QSH_SESSION_FILE" -o -z "$session_name" ] && return 1
+    sed -i "/$session_name/d" $QSH_SESSION_FILE
+}
+
+function edit_session {
+    local session_name="$1" tmp_name
+    local session_file session_found
+    local session_segs="$SSN_NAME $SSN_ADDR $SSN_TYPE $SSN_USER $SSN_PAWD"
+
+    [ ! -r "$QSH_SESSION_FILE" -o -z "$session_name" ] && return 1
+    SSN_SEG_NAME=$session_name
+	get_session_info
+
+	index=0
+	for seg in $session_segs; do
+        GET_SESSION_INFO_HINT="${seg}[${SSN_SEGS_INFO[$index]}]"
+	    tmp_seg=`read_session_info`
+
+	    [ -n "$tmp_seg" ] && SSN_SEGS_INFO[$index]=$tmp_seg
+	    index=$[ $index + 1 ]
+	done
+
+    local session=
+    index=0
+    for seg in ${SSN_SEGS_INFO[@]}; do
+        [ $index -gt 0 ] && seg=:$seg
+        session=$session$seg
+        index=$[ $index + 1 ]
+    done
+
+    sed -i "/$session_name/c $session" $QSH_SESSION_FILE
+}
+
+function connect_session {
+    SSN_SEG_NAME="$1"
+    [ -z "$SSN_SEG_NAME" ] && return 1
+    get_session_info
+
+    if which expect &>/dev/null; then
+        eval $QSH_LOGIN_SCRIPT ${SSN_SEGS_INFO[1]} ${SSN_SEGS_INFO[2]} ${SSN_SEGS_INFO[3]} ${SSN_SEGS_INFO[4]}
+    fi
+}
+
+## Main Script ##
+if [ $# -lt 1 ]; then
+    usage
+    exit
+else
+    case "$1" in 
+	"list")
+	    list_sessions_info
+	    ;;
+	"create")
+	    create_new_session
+	    ;;
+	"delete")
+	    delete_session $2
+	    ;;
+	"edit")
+	    edit_session   $2
+	    ;;
+	"help")
+	    usage
+	    ;;
+	"connect")
+	    connect_session $2
+	    ;;
+	*)
+	    usage
+	    ;;
+    esac
+fi
+

@@ -1,0 +1,32 @@
+############# qsh_comletion #############
+HOME_ROOT=/opt/jupengfei/tool/.
+. $HOME_ROOT/lib/libqsh.sh
+
+function gen_qsh_commands {
+    local cur prev result
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD - 1]}
+
+    if [ "$COMP_CWORD" -eq 1 ]; then
+        local session_cmds=`get_session_cmds`
+        result=`compgen -W "$session_cmds" -- $cur`
+    elif [ "$COMP_CWORD" -eq 2 ]; then
+        case "$prev" in 
+            list|create) 
+                result=
+                ;;
+            *)
+                local session_names=`get_session_names`
+                result=`compgen -W "$session_names" -- $cur`
+                ;;
+        esac
+    fi
+
+    for seg in $result; do
+        COMPREPLY=(${COMPREPLY[@]} $seg)
+    done
+}
+
+complete -F gen_qsh_commands qsh
