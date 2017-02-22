@@ -46,9 +46,11 @@ parse_item () {
         dir=`pwd`/$dir
     fi
 
-    local item=`grep "^[[:digit:]]:$d$" $QD_DB_FILE 2>/dev/null`
-    [ -n "$item" ] && dir=${item##*:}
-    save_cache $dir
+    if [ "${dir//./}" = "$dir" ]; then
+        local item=`grep "^[[:digit:]]:$d$" $QD_DB_FILE 2>/dev/null`
+        [ -n "$item" ] && dir=${item##*:}
+        save_cache $dir
+    fi
 
     echo ${dir##`pwd`/}
 }

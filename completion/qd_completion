@@ -8,7 +8,12 @@ function gen_qd_commands {
     cur=${COMP_WORDS[COMP_CWORD]}
     [ ${#COMP_WORDS} -gt 2 ] && return
 
-    local items=`get_cache_list`
+    local top=`pwd`
+    local items tmp_items=`get_cache_list`
+
+    for tmp_item in $tmp_items; do
+        items="$items ${tmp_item#$top/}"
+    done
     items="$items `ls`"
 
     local delims=`echo $cur|tr ':' '\n'`
