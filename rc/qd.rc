@@ -1,4 +1,4 @@
-HOME_ROOT=/opt2/jupengfei/.tool/.
+HOME_ROOT=/home/Administrator/.tool/.
 . $HOME_ROOT/lib/libqd.sh
 
 usage () {
