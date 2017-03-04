@@ -1,5 +1,5 @@
 ############# qsh_comletion #############
-HOME_ROOT=/opt/jupengfei/tool/.
+HOME_ROOT=/opt2/jupengfei/.tool/.
 . $HOME_ROOT/lib/libqsh.sh
 
 function gen_qsh_commands {

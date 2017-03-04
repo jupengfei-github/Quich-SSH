@@ -1,4 +1,4 @@
-HOME_ROOT=/opt/jupengfei/tool/.
+HOME_ROOT=/opt2/jupengfei/.tool/.
 QD_DB_FILE=$HOME_ROOT/db/qd.db
 QD_DB_TOP=10
 

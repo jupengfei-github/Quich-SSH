@@ -1,5 +1,5 @@
 ## Directory ##
-HOME_ROOT=/opt/jupengfei/tool/.
+HOME_ROOT=/opt2/jupengfei/.tool/.
 QSH_SESSION_FILE=$HOME_ROOT/db/qsh.db
 QSH_LOGIN_SCRIPT=$HOME_ROOT/lib/login.tcl
 

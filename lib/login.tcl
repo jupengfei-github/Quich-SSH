@@ -1,4 +1,4 @@
-#!/usr/bin/expect
+#!/usr/bin/expect -f
 
 set address [ lindex $argv 0 ]
 set type    [ lindex $argv 1 ]
@@ -13,8 +13,9 @@ proc ssh_login {addr user passwd} {
         set timeout 10
         spawn ssh $user@$addr
         expect {
-            "yes/no" { send "yes\r"; exp_continue }
+            "yes/no"    { send "yes\r"; exp_continue }
             "password:" { send "$passwd\r"; }
+			"FreeBSD:"  { send "$passwd\r"; }
         }
         interact
     }

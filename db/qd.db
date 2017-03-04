@@ -1,5 +1,3 @@
 
-1:/opt/jupengfei/PD1610/kernel/mm
-2:/opt/jupengfei/PD1610/kernel/mm/kasan
-3:/opt/jupengfei/tool/rc
-10:/opt/jupengfei/PD1610/kernel/mm
+2:/opt2/jupengfei/STD16111F_EX
+2:/opt2/jupengfei/STD16111F_EX/vendor/vivo/overlay
