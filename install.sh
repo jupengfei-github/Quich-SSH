@@ -3,6 +3,9 @@
 ROOT_DIR=`pwd`/`dirname $0`
 INSTALL_FAIL=true
 
+# pre_install
+source pre_install.sh
+
 # set home_root
 for file in $ROOT_DIR/*; do
     [ -d $file ] && sed -i "/HOME_ROOT=/cHOME_ROOT=$ROOT_DIR" $file/*
