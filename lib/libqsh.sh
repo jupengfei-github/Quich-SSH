@@ -1,5 +1,5 @@
 ## Directory ##
-HOME_ROOT=/home/Administrator/.tool/.
+HOME_ROOT=/opt/jupengfei/.qk/.
 QSH_SESSION_FILE=$HOME_ROOT/db/qsh.db
 QSH_LOGIN_SCRIPT=$HOME_ROOT/lib/login.tcl
 
@@ -22,12 +22,12 @@ function qprint {
 }
 
 function get_session_cmds () {
-    echo create delete edit help connect list
+    echo create delete edit connect list help
 }
 
 function get_session_names {
     QSH_SSN_NAMES=()
-    [ ! -r "$QSH_SESSION_FILE" ] && return 1
+    [ ! -r "$QSH_SESSION_FILE" ] && return ""
 
     local names=`cut -d':' -f1 $QSH_SESSION_FILE`
     for name in $names; do

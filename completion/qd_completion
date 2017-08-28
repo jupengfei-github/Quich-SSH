@@ -1,4 +1,4 @@
-HOME_ROOT=/home/Administrator/.tool/.
+HOME_ROOT=/opt/jupengfei/.qk/.
 . $HOME_ROOT/lib/libqd.sh
 
 top_dir () {
