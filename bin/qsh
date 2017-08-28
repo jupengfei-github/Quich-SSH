@@ -100,7 +100,7 @@ function delete_session {
     local session_name="$1"
 
     [ ! -r "$QSH_SESSION_FILE" -o -z "$session_name" ] && return 1
-    sed -i "/$session_name/d" $QSH_SESSION_FILE
+    sed -i "/^$session_name:.*/d" $QSH_SESSION_FILE
 }
 
 function edit_session {
@@ -129,7 +129,7 @@ function edit_session {
         index=$[ $index + 1 ]
     done
 
-    sed -i "/$session_name/c $session" $QSH_SESSION_FILE
+    sed -i "/^$session_name:.*/c $session" $QSH_SESSION_FILE
 }
 
 function connect_session {
