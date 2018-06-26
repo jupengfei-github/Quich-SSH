@@ -140,6 +140,8 @@ function connect_session {
 
     if which expect &>/dev/null; then
         eval $QSH_LOGIN_SCRIPT ${SSN_SEGS_INFO[1]} ${SSN_SEGS_INFO[2]} ${SSN_SEGS_INFO[3]} ${SSN_SEGS_INFO[4]}
+    else
+        echo "Please install expect pacakge"
     fi
 }
 
